@@ -4,6 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -20,12 +33,16 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2021-12-20T15:31:39.272-05:00")
-
+@Entity
+@Table(name = "product")
 public class Product {
+	@Id
 	@JsonProperty("id")
 	private Long id;
 
 	@JsonProperty("category")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "category_id", referencedColumnName = "id")
 	private Category category;
 
 	@JsonProperty("name")
@@ -33,10 +50,16 @@ public class Product {
 
 	@JsonProperty("photoURL")
 	@Valid
+	@Column(name = "photourl")
 	private String photoURL;
 
 	@JsonProperty("tags")
 	@Valid
+	@ManyToMany
+	@JoinTable(
+			name = "product_tag",
+			joinColumns = @JoinColumn(name = "product_id"),
+			inverseJoinColumns = @JoinColumn(name = "tag_id"))
 	private List<Tag> tags = null;
 
 	/**
@@ -76,8 +99,27 @@ public class Product {
 		}
 	}
 
+	@Transient
+	private StatusEnum statusEnum;
+
 	@JsonProperty("status")
-	private StatusEnum status;
+	@Column(name = "status")
+	@Basic
+	private String status;
+
+	@PostLoad
+	void fillTransient() {
+		if (status != null) {
+			this.statusEnum = StatusEnum.fromValue(status);
+		}
+	}
+
+	@PrePersist
+	void fillPersistent() {
+		if (statusEnum != null) {
+			this.status = statusEnum.getValue();
+		}
+	}
 
 	public Product id(Long id) {
 		this.id = id;
@@ -189,23 +231,23 @@ public class Product {
 	}
 
 	public Product status(StatusEnum status) {
-		this.status = status;
+		this.status = String.valueOf(status);
 		return this;
 	}
 
 	/**
 	 * pet status in the store
-	 * 
+	 *
 	 * @return status
 	 */
 	@ApiModelProperty(value = "pet status in the store")
 
-	public StatusEnum getStatus() {
+	public String getStatus() {
 		return status;
 	}
 
 	public void setStatus(StatusEnum status) {
-		this.status = status;
+		this.status = String.valueOf(status);
 	}
 
 	@Override

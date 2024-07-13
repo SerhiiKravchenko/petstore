@@ -4,6 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -20,23 +35,36 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2021-12-20T15:31:39.272-05:00")
-
+@Entity
+@Table(name = "pet")
 public class Pet {
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id")
 	@JsonProperty("id")
 	private Long id;
 
 	@JsonProperty("category")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "category_id", referencedColumnName = "id")
 	private Category category;
 
 	@JsonProperty("name")
+	@Column(name = "name")
 	private String name;
 
 	@JsonProperty("photoURL")
 	@Valid
+	@Column(name = "photourl")
 	private String photoURL;
 
 	@JsonProperty("tags")
 	@Valid
+    @ManyToMany
+    @JoinTable(
+            name = "pet_tag",
+            joinColumns = @JoinColumn(name = "pet_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
 	private List<Tag> tags = null;
 
 	/**
@@ -76,8 +104,28 @@ public class Pet {
 		}
 	}
 
-	@JsonProperty("status")
-	private StatusEnum status;
+	@Transient
+	private StatusEnum statusEnum;
+
+    @JsonProperty("status")
+    @Column(name = "status")
+	@Basic
+	private String status;
+
+	@PostLoad
+	void fillTransient() {
+		if (status != null) {
+			this.statusEnum = StatusEnum.fromValue(status);
+		}
+	}
+
+	@PrePersist
+	void fillPersistent() {
+		if (statusEnum != null) {
+			this.status = statusEnum.getValue();
+		}
+	}
+
 
 	public Pet id(Long id) {
 		this.id = id;
@@ -106,7 +154,7 @@ public class Pet {
 
 	/**
 	 * Get category
-	 * 
+	 *
 	 * @return category
 	 */
 	@ApiModelProperty(value = "")
@@ -128,7 +176,7 @@ public class Pet {
 
 	/**
 	 * Get name
-	 * 
+	 *
 	 * @return name
 	 */
 	@ApiModelProperty(example = "doggie", required = true, value = "")
@@ -144,7 +192,7 @@ public class Pet {
 
 	/**
 	 * Get photoUrls
-	 * 
+	 *
 	 * @return photoUrls
 	 */
 	@ApiModelProperty(required = true, value = "")
@@ -189,7 +237,7 @@ public class Pet {
 	}
 
 	public Pet status(StatusEnum status) {
-		this.status = status;
+		this.statusEnum = status;
 		return this;
 	}
 
@@ -200,12 +248,12 @@ public class Pet {
 	 */
 	@ApiModelProperty(value = "pet status in the store")
 
-	public StatusEnum getStatus() {
-		return status;
+	public StatusEnum getStatusEnum() {
+		return statusEnum;
 	}
 
-	public void setStatus(StatusEnum status) {
-		this.status = status;
+	public void setStatusEnum(StatusEnum statusEnum) {
+		this.statusEnum = statusEnum;
 	}
 
 	@Override
@@ -219,12 +267,12 @@ public class Pet {
 		Pet pet = (Pet) o;
 		return Objects.equals(this.id, pet.id) && Objects.equals(this.category, pet.category)
 				&& Objects.equals(this.name, pet.name) && Objects.equals(this.photoURL, pet.photoURL)
-				&& Objects.equals(this.tags, pet.tags) && Objects.equals(this.status, pet.status);
+				&& Objects.equals(this.tags, pet.tags) && Objects.equals(this.statusEnum, pet.statusEnum);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, category, name, photoURL, tags, status);
+		return Objects.hash(id, category, name, photoURL, tags, statusEnum);
 	}
 
 	@Override
@@ -237,7 +285,7 @@ public class Pet {
 		sb.append("    name: ").append(toIndentedString(name)).append("\n");
 		sb.append("    photoUrls: ").append(toIndentedString(photoURL)).append("\n");
 		sb.append("    tags: ").append(toIndentedString(tags)).append("\n");
-		sb.append("    status: ").append(toIndentedString(status)).append("\n");
+		sb.append("    status: ").append(toIndentedString(statusEnum)).append("\n");
 		sb.append("}");
 		return sb.toString();
 	}

@@ -29,6 +29,7 @@ import com.chtrembl.petstore.pet.model.ContainerEnvironment;
 import com.chtrembl.petstore.pet.model.DataPreload;
 import com.chtrembl.petstore.pet.model.ModelApiResponse;
 import com.chtrembl.petstore.pet.model.Pet;
+import com.chtrembl.petstore.pet.repository.PetRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,9 +52,17 @@ public class PetApiController implements PetApi {
 	@Autowired
 	private DataPreload dataPreload;
 
+	@Autowired
+	private PetRepository petRepository;
+
 	@Override
 	public DataPreload getBeanToBeAutowired() {
 		return dataPreload;
+	}
+
+	@Override
+	public List<Pet> getPreloadedPets() {
+		return petRepository.findAll();
 	}
 
 	@org.springframework.beans.factory.annotation.Autowired
