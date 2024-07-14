@@ -10,6 +10,11 @@ petstore:
   service:
     product:
       url: ${PETSTOREPRODUCTSERVICE_URL:http://localhost:8082}
+  cosmo:
+    database:
+      url: ${PETSTOREPRODUCTCOSMODB_URL}
+      key: ${PETSTOREPRODUCTCOSMODB_KEY}
+
 
 spring:
   application:

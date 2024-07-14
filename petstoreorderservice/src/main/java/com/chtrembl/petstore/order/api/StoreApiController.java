@@ -50,6 +50,9 @@ public class StoreApiController implements StoreApi {
 	@Autowired
 	private StoreApiCache storeApiCache;
 
+	@Autowired
+	private CosmosDbClient cosmosDbClient;
+
 	@Override
 	public StoreApiCache getBeanToBeAutowired() {
 		return storeApiCache;
@@ -165,6 +168,8 @@ public class StoreApiController implements StoreApi {
 				Order order = this.storeApiCache.getOrder(body.getId());
 				String orderJSON = new ObjectMapper().writeValueAsString(order);
 
+				placeOrderToCosmoDb(order);
+
 				ApiUtil.setResponse(request, "application/json", orderJSON);
 				return new ResponseEntity<>(HttpStatus.OK);
 			} catch (IOException e) {
@@ -175,6 +180,10 @@ public class StoreApiController implements StoreApi {
 
 		return new ResponseEntity<Order>(HttpStatus.NOT_IMPLEMENTED);
 
+	}
+
+	private void placeOrderToCosmoDb(Order order) {
+		cosmosDbClient.placeOrderToDb(order);
 	}
 
 	@Override
