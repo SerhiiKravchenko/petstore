@@ -39,3 +39,21 @@ spring:
     cache: false
   cache:
     cache-names: currentUsers
+  cloud:
+    azure:
+      active-directory:
+        b2c:
+          enabled: 'true'
+          base-uri: ${BASE_URI}
+          tenant: ${TENANT_NAME}
+          oidc-enabled: 'true'
+          login-flow: sign-up-or-sign-in
+          credential:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+          logout-success-url: ${LOGOUT_SUCCESS_URL}
+          user-name-attribute-name: sub
+          user-flows:
+            sign-up-or-sign-in: 'B2C_1_signupsignin'
+            profile-edit: 'B2C_1_profileediting'
+            password-reset: 'B2C_1_passwordreset'
