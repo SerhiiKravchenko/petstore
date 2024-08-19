@@ -14,8 +14,9 @@ petstore:
     database:
       url: ${PETSTOREPRODUCTCOSMODB_URL}
       key: ${PETSTOREPRODUCTCOSMODB_KEY}
-
-
+  servicebus:
+    connection-string: ${PETSTORESERVICEBUS}
+    queue-name: ${PETSTOREQUEUENAME}
 spring:
   application:
     name: petstoreorderservice

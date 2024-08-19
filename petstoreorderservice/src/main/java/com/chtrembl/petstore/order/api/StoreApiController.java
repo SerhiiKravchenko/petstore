@@ -1,5 +1,8 @@
 package com.chtrembl.petstore.order.api;
 
+import com.azure.messaging.servicebus.ServiceBusClientBuilder;
+import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.chtrembl.petstore.order.model.ContainerEnvironment;
 import com.chtrembl.petstore.order.model.Order;
 import com.chtrembl.petstore.order.model.Product;
@@ -10,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +56,12 @@ public class StoreApiController implements StoreApi {
 
 	@Autowired
 	private CosmosDbClient cosmosDbClient;
+
+	@Value("${petstore.servicebus.connection-string}")
+	private String connectionString;
+
+	@Value("${petstore.servicebus.queue-name}")
+	private String queueName;
 
 	@Override
 	public StoreApiCache getBeanToBeAutowired() {
@@ -170,6 +180,8 @@ public class StoreApiController implements StoreApi {
 
 				placeOrderToCosmoDb(order);
 
+				reserveOrder(orderJSON);
+
 				ApiUtil.setResponse(request, "application/json", orderJSON);
 				return new ResponseEntity<>(HttpStatus.OK);
 			} catch (IOException e) {
@@ -184,6 +196,18 @@ public class StoreApiController implements StoreApi {
 
 	private void placeOrderToCosmoDb(Order order) {
 		cosmosDbClient.placeOrderToDb(order);
+	}
+
+	private void reserveOrder(String orderJSON) {
+		ServiceBusSenderClient senderClient = new ServiceBusClientBuilder()
+				.connectionString(connectionString)
+				.sender()
+				.queueName(queueName)
+				.buildClient();
+
+		senderClient.sendMessage(new ServiceBusMessage(orderJSON));
+
+		senderClient.close();
 	}
 
 	@Override
