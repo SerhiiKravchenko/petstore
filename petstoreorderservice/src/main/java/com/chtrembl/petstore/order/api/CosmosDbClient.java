@@ -32,7 +32,7 @@ public class CosmosDbClient implements OrderToDb {
 
         CosmosDatabase database = client.getDatabase(databaseName);
         CosmosContainer container = database.getContainer(containerName);
-        String activityId = container.createItem(order).getActivityId();
+        String activityId = container.upsertItem(order).getActivityId();
 
         client.close();
 
